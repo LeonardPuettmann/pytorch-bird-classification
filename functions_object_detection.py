@@ -3,11 +3,14 @@ import math
 import os
 from PIL import Image
 from pathlib import Path
+from typing import List
 
 import imgaug as ia
 import matplotlib.image as mpimg
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+
+import numpy as np
 
 import torch
 from torchvision.utils import draw_bounding_boxes, make_grid
@@ -15,8 +18,10 @@ from torchvision.io import read_image
 import torchvision.transforms.functional as F
 import torchvision.transforms as T
 
+# set device so that it does not need to be set as an argument
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def display_image_with_boxes(image_path, bounding_boxes):
+def display_image_with_boxes(image_path: str, bounding_boxes: List):
     """
     Display an image with bounding boxes.
 
@@ -43,9 +48,23 @@ def display_image_with_boxes(image_path, bounding_boxes):
 
 
 def collate_fn(batch):
+    """
+    Simple function to convert a batch into a tuple.
+    """
     return tuple(zip(*batch))
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch):
+def train_one_epoch(model: torch.nn.Module, optimizer: torch.otpim, data_loader: torch.utils.data.DataLoader, device: torch.device) -> dict:
+    """
+    Helper function to train a Faster RCNN model for object detection. 
+
+    Parameters:
+    - model: the model to be trained. Should be a pretrained Faster RCNN mmodel with a custom classification head. 
+    - optimizer: The optimizer to use for the training, ie SGD or Adam.
+    - data_loader: A dataloader for the CUB-200-2011 dataset. 
+    - device: Either a CUDA GPU or CPU. 
+
+    Returns: Metrics of the training from one epoch.
+    """
     loss_values = []
     for i, (images, targets) in enumerate(data_loader):
         images = list(image.to(device) for image in images)
@@ -100,6 +119,9 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch):
 
 
 def show(imgs):
+    """
+    Helper function to display an image.
+    """
     if not isinstance(imgs, list):
         imgs = [imgs]
     fig, axs = plt.subplots(ncols=len(imgs), squeeze=False)
@@ -111,7 +133,19 @@ def show(imgs):
         axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 
-def display_image_with_boxes(model, image_path, transform, color="red"):
+def display_image_with_boxes(model: torch.nn.Module, image_path: str, transform: torchvision.transforms, color: str ="red"):
+    """
+    Heplper function to get predictions from a Faster RCNN model and print these predictions on an image. 
+    This model is for an object detection task, so it will vizualize the bounding boxes for a found object, 
+    in this case the the bounding boxes should be for a bird.
+
+    Paramters: 
+    - model: Faster RCNN model. 
+    - image_path: The file path for the image to print and get predictions on.
+    - transform: Image transformation to preprocess the image for the model. Should be a torchvision transforms.
+    - color: Color of the bounding box. Red by default. 
+    """
+
     # resize image using the Image library 
     image = Image.open(image_path)
 
@@ -122,9 +156,6 @@ def display_image_with_boxes(model, image_path, transform, color="red"):
     # transform the image for viz
     uint_image = read_image(image_path)
     print(uint_image.shape)
-
-    # Delete the temporary image file
-    #os.remove(temp_path)    
 
     # Ensure the model is in evaluation mode
     model.eval()
