@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import torch
+import torchvision
 from torchvision.utils import draw_bounding_boxes, make_grid
 from torchvision.io import read_image
 import torchvision.transforms.functional as F
@@ -53,7 +54,7 @@ def collate_fn(batch):
     """
     return tuple(zip(*batch))
 
-def train_one_epoch(model: torch.nn.Module, optimizer: torch.otpim, data_loader: torch.utils.data.DataLoader, device: torch.device) -> dict:
+def train_one_epoch(model: torch.nn.Module, optimizer, data_loader: torch.utils.data.DataLoader, device: torch.device) -> dict:
     """
     Helper function to train a Faster RCNN model for object detection. 
 
@@ -133,7 +134,7 @@ def show(imgs):
         axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 
-def display_image_with_boxes(model: torch.nn.Module, image_path: str, transform: torchvision.transforms, color: str ="red"):
+def display_prediction_with_boxes(model: torch.nn.Module, image_path: str, transform: torchvision.transforms, color: str ="red"):
     """
     Heplper function to get predictions from a Faster RCNN model and print these predictions on an image. 
     This model is for an object detection task, so it will vizualize the bounding boxes for a found object, 
@@ -171,7 +172,7 @@ def display_image_with_boxes(model: torch.nn.Module, image_path: str, transform:
     print(boxes)
 
     class_names = os.listdir("cub-200-2011/images")
-    labels = [class_names[label-2]]
+    labels = [class_names[label-1]]
 
     font_path = "c:\Windows\Fonts\CONSOLA.TTF"
     result = draw_bounding_boxes(uint_image, boxes=boxes, colors=[color], labels=labels, width=12, font=font_path, font_size=90)
