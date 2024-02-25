@@ -172,7 +172,7 @@ def display_prediction_with_boxes(model: torch.nn.Module, image_path: str, trans
     print(boxes)
 
     class_names = os.listdir("cub-200-2011/images")
-    labels = [class_names[label-1]]
+    labels = [class_names[label]]
 
     font_path = "c:\Windows\Fonts\CONSOLA.TTF"
     result = draw_bounding_boxes(uint_image, boxes=boxes, colors=[color], labels=labels, width=12, font=font_path, font_size=90)
