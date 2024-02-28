@@ -129,9 +129,9 @@ def show(imgs):
         axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 
-def display_prediction_with_boxes(model: torch.nn.Module, image_path: str, transform: torchvision.transforms, color: str ="red"):
+def display_prediction_with_boxes(model: torch.nn.Module, image_path: str, transform: torchvision.transforms, class_labels: List, color: str ="red"):
     """
-    Heplper function to get predictions from a Faster RCNN model and print these predictions on an image. 
+    Helper function to get predictions from a Faster RCNN model and print these predictions on an image. 
     This model is for an object detection task, so it will vizualize the bounding boxes for a found object, 
     in this case the the bounding boxes should be for a bird.
 
@@ -144,13 +144,16 @@ def display_prediction_with_boxes(model: torch.nn.Module, image_path: str, trans
 
     # resize image using the Image library 
     image = Image.open(image_path)
+    image = image.resize((224, 224))
 
     # transform the image for the model 
     image_transformed = transform(image)
     image_transformed = image_transformed.unsqueeze(0)
 
     # transform the image for viz
-    uint_image = read_image(image_path)
+    uint_image = torchvision.transforms.ToPILImage()(image_transformed.squeeze(0))
+    uint_image = torchvision.transforms.ToTensor()(uint_image)
+    uint_image = uint_image.mul(255).byte()
     print(uint_image.shape)
 
     # Ensure the model is in evaluation mode
@@ -166,11 +169,10 @@ def display_prediction_with_boxes(model: torch.nn.Module, image_path: str, trans
     print(label)
     print(boxes)
 
-    class_names = os.listdir("cub-200-2011/images")
-    labels = [class_names[label]]
+    labels = [class_labels[label-1]]
 
     font_path = "c:\Windows\Fonts\CONSOLA.TTF"
-    result = draw_bounding_boxes(uint_image, boxes=boxes, colors=[color], labels=labels, width=12, font=font_path, font_size=90)
+    result = draw_bounding_boxes(uint_image, boxes=boxes, colors=[color], labels=labels, width=3, font=font_path, font_size=30)
 
     # Convert the tensor image to PIL image for displaying
     result = F.to_pil_image(result)
